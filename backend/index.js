@@ -11,11 +11,48 @@ import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHt
 import mergedTypeDefs from "./typeDefs/index.js";
 import mergedResolvers from "./resolvers/index.js";
 import { connectDb } from "./db/connectDb.js";
+import ConnectMongoDBSession from "connect-mongodb-session";
+import { session } from "passport";
+import passport from "passport";
+import { buildContext } from "graphql-passport";
+import { configurePassport } from "./passport/passport.config.js";
 
 dotenv.config();
+configurePassport();
 
 const app = express();
 const httpServer = http.createServer(app);
+
+const MongoDBStore = ConnectMongoDBSession(session);
+
+const store = new MongoDBStore({
+  uri: process.env.MONGO_URI,
+  collection: "sessions",
+  expires: new Date(Date.now() + 60 * 60 * 1000 * 24 * 30), // 30 days
+});
+
+store.on("error", (err) =>
+  console.error(`Error connecting to MongoDB session store: ${err}`)
+);
+
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  store,
+  cookie: {
+    maxAge: 60 * 60 * 1000 * 24 * 7, // 7 days
+    secure: process.env.NODE_ENV === "production",
+    httpOnly: true,
+  },
+  name: "session",
+  rolling: true,
+  unset: "destroy", // Automatically delete session after it's expired.
+}))
+
+app.use(passport.initialize());
+app.use(passport.session());
+
 const server = new ApolloServer({
   typeDefs: mergedTypeDefs,
   resolvers: mergedResolvers,
@@ -26,10 +63,13 @@ await server.start();
 
 app.use(
   "/graphql",
-  cors(),
+  cors({
+    origin: process.env.CLIENT_URL,
+    credentials: true,
+  }),
   express.json(),
   expressMiddleware(server, {
-    context: async ({ req }) => ({ req }),
+    context: async ({ req, res }) => buildContext({ req, res }),
   })
 );
 
