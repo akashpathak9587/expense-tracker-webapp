@@ -10,6 +10,7 @@ import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHt
 
 import mergedTypeDefs from "./typeDefs/index.js";
 import mergedResolvers from "./resolvers/index.js";
+import { connectDb } from "./db/connectDb.js";
 
 dotenv.config();
 
@@ -33,4 +34,6 @@ app.use(
 );
 
 await new Promise((resolve) => httpServer.listen({ port: 4000 }, resolve));
+await connectDb();
+
 console.log(`🚀 Server ready at http://localhost:4000/graphql`);
