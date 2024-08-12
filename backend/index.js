@@ -12,10 +12,10 @@ import mergedTypeDefs from "./typeDefs/index.js";
 import mergedResolvers from "./resolvers/index.js";
 import { connectDb } from "./db/connectDb.js";
 import ConnectMongoDBSession from "connect-mongodb-session";
-import { session } from "passport";
 import passport from "passport";
 import { buildContext } from "graphql-passport";
 import { configurePassport } from "./passport/passport.config.js";
+import session from "express-session";
 
 dotenv.config();
 configurePassport();
