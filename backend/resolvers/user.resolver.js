@@ -1,3 +1,4 @@
+import Transaction from "../models/transaction.model.js";
 import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 
@@ -24,7 +25,7 @@ const userResolver = {
           name,
           password: hashedPassword,
           gender,
-          profilePicture: gender === "boy" ? boyProfilePic : girlProfilePic,
+          profilePicture: gender === "male" ? boyProfilePic : girlProfilePic,
         });
 
         await newUser.save();
@@ -82,9 +83,12 @@ const userResolver = {
         throw new Error(err.message || "Internal Server Error");
       }
     },
-    user: async (_, { userId }, ) => {
+    user: async (_, { userId } ) => {
       try {
         const user = await User.findById(userId);
+        if (user) {
+          user.transactions = await Transaction.find({ userId });
+        }
         if (!user) {
           throw new Error("User not found");
         }
