@@ -65,10 +65,7 @@ await server.start();
 
 app.use(
   "/graphql",
-  cors({
-    origin: "http://localhost:3000",
-    credentials: true,
-  }),
+  cors(),
   express.json(),
   expressMiddleware(server, {
     context: async ({ req, res }) => buildContext({ req, res }),
