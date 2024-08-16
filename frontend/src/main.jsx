@@ -10,7 +10,7 @@ const client = new ApolloClient({
   uri:
     import.meta.env.VITE_NODE_ENV === "development"
       ? "http://localhost:4000/graphql"
-      : `${import.meta.env.VITE_SERVER_URL}/graphql`,
+      : "/graphql",
   cache: new InMemoryCache(),
   credentials: "include",
 });
