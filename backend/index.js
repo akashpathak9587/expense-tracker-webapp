@@ -44,7 +44,7 @@ app.use(session({
   store,
   cookie: {
     maxAge: 60 * 60 * 1000 * 24 * 7, // 7 days
-    secure: process.env.NODE_ENV === "production",
+    // secure: process.env.NODE_ENV === "production",
     httpOnly: true,
   },
   name: "session",
@@ -62,10 +62,15 @@ const server = new ApolloServer({
 });
 
 await server.start();
-
+const corsOptions = {
+  origin: process.env.NODE_ENV === "production" ? process.env.SERVER_URL : "http://localhost:3000",
+  credentials: true,
+};
 app.use(
   "/graphql",
-  cors(),
+  cors(
+    corsOptions
+  ),
   express.json(),
   expressMiddleware(server, {
     context: async ({ req, res }) => buildContext({ req, res }),
